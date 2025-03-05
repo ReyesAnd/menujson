@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Dinámico</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('menuDinamico.json')
+                .then(response => response.json())
+                .then(data => {
+                    menuData = data;
+                    renderMenu();
+                });
+
+            let menuData = { "menu": [] };
+            const iconosDisponibles = ["🏠", "ℹ️", "🛠️", "📞", "🔗"];
+            const enlacesDisponibles = ["/inicio", "/sobre-nosotros", "/servicios", "/contacto"];
+
+            function renderMenu() {
+                const menuContainer = document.getElementById("menu");
+                menuContainer.innerHTML = "";
+                
+                menuData.menu.forEach(item => {
+                    let menuItem = document.createElement("div");
+                    menuItem.style.display = "flex";
+                    menuItem.style.alignItems = "center";
+                    menuItem.style.padding = "10px";
+                    menuItem.style.border = "1px solid #ddd";
+                    menuItem.style.margin = "5px 0";
+                    menuItem.style.borderRadius = "5px";
+                    menuItem.style.backgroundColor = "#f9f9f9";
+                    menuItem.style.fontSize = "18px";
+                    
+                    let link = document.createElement("a");
+                    link.href = item.enlace;
+                    link.textContent = `${item.icono} ${item.nombre}`;
+                    link.style.flexGrow = "1";
+                    link.style.textDecoration = "none";
+                    link.style.color = "black";
+                    
+                    let editButton = document.createElement("button");
+                    editButton.textContent = "✏️";
+                    editButton.style.marginLeft = "10px";
+                    editButton.onclick = () => editMenuItem(item.id);
+                    
+                    let deleteButton = document.createElement("button");
+                    deleteButton.textContent = "❌";
+                    deleteButton.style.marginLeft = "10px";
+                    deleteButton.onclick = () => deleteMenuItem(item.id);
+                    
+                    menuItem.appendChild(link);
+                    menuItem.appendChild(editButton);
+                    menuItem.appendChild(deleteButton);
+                    menuContainer.appendChild(menuItem);
+                });
+            }
+
+            function editMenuItem(id) {
+                const item = menuData.menu.find(m => m.id === id);
+                if (item) {
+                    document.getElementById("nombre").value = item.nombre;
+                    document.getElementById("enlace").value = item.enlace;
+                    document.getElementById("icono").value = item.icono;
+                    document.getElementById("addMenuItem").dataset.editingId = id;
+                }
+            }
+
+            function deleteMenuItem(id) {
+                menuData.menu = menuData.menu.filter(m => m.id !== id);
+                renderMenu();
+            }
+
+            document.getElementById("addMenuItem").addEventListener("click", function() {
+                const nombre = document.getElementById("nombre").value;
+                const enlace = document.getElementById("enlace").value;
+                const icono = document.getElementById("icono").value;
+                const editingId = this.dataset.editingId;
+                
+                if (nombre && enlace) {
+                    if (editingId) {
+                        let item = menuData.menu.find(m => m.id == editingId);
+                        item.nombre = nombre;
+                        item.enlace = enlace;
+                        item.icono = icono;
+                        delete this.dataset.editingId;
+                    } else {
+                        const id = menuData.menu.length + 1;
+                        menuData.menu.push({ "id": id, "nombre": nombre, "enlace": enlace, "icono": icono });
+                    }
+                    renderMenu();
+                    document.getElementById("nombre").value = "";
+                    document.getElementById("enlace").value = "";
+                    document.getElementById("icono").value = "";
+                } else {
+                    alert("Por favor, completa todos los campos");
+                }
+            });
+
+            const iconoSelect = document.getElementById("icono");
+            iconosDisponibles.forEach(icono => {
+                let option = document.createElement("option");
+                option.value = icono;
+                option.textContent = icono;
+                iconoSelect.appendChild(option);
+            });
+        });
+    </script>
+</head>
+<body>
+    <h2>Menú Dinámico</h2>
+    <nav id="menu"></nav>
+    <h3>Gestionar Opciones del Menú</h3>
+    <input type="text" id="nombre" placeholder="Nombre del menú">
+    <input type="text" id="enlace" placeholder="Enlace">
+    <select id="icono"></select>
+    <button id="addMenuItem">Guardar</button>
+</body>
+</html>
